@@ -1,0 +1,164 @@
+{
+  "doc_name": "隐形井盖_参数化.ghx",
+  "description": "隐形铺装井盖 参数化模型 - 600x600井口",
+  "script_nickname": "隐形井盖参数化",
+  "sliders": [
+    {
+      "var": "opening",
+      "nick": "井口净空",
+      "min": 400,
+      "max": 1200,
+      "value": 600,
+      "digits": 0
+    },
+    {
+      "var": "trayDepth",
+      "nick": "托盘深度",
+      "min": 60,
+      "max": 120,
+      "value": 80,
+      "digits": 0
+    },
+    {
+      "var": "gap",
+      "nick": "缝隙",
+      "min": 2,
+      "max": 20,
+      "value": 8,
+      "digits": 1
+    },
+    {
+      "var": "lip",
+      "nick": "外框可见边",
+      "min": 10,
+      "max": 40,
+      "value": 18,
+      "digits": 0
+    },
+    {
+      "var": "frameT",
+      "nick": "外框板厚",
+      "min": 3,
+      "max": 10,
+      "value": 6,
+      "digits": 0
+    },
+    {
+      "var": "wallT",
+      "nick": "托盘壁厚",
+      "min": 5,
+      "max": 15,
+      "value": 10,
+      "digits": 0
+    },
+    {
+      "var": "plateT",
+      "nick": "底板厚",
+      "min": 2,
+      "max": 15,
+      "value": 10,
+      "digits": 0
+    },
+    {
+      "var": "ribCount",
+      "nick": "肋网格数量",
+      "min": 2,
+      "max": 8,
+      "value": 5,
+      "digits": 0
+    },
+    {
+      "var": "ribT",
+      "nick": "肋厚",
+      "min": 3,
+      "max": 10,
+      "value": 6,
+      "digits": 0
+    },
+    {
+      "var": "ribH",
+      "nick": "肋高",
+      "min": 30,
+      "max": 80,
+      "value": 50,
+      "digits": 0
+    },
+    {
+      "var": "ringT",
+      "nick": "井圈壁厚",
+      "min": 80,
+      "max": 150,
+      "value": 100,
+      "digits": 0
+    },
+    {
+      "var": "ringD",
+      "nick": "井圈深度",
+      "min": 100,
+      "max": 300,
+      "value": 150,
+      "digits": 0
+    },
+    {
+      "var": "pavingT",
+      "nick": "铺装厚度",
+      "min": 15,
+      "max": 40,
+      "value": 20,
+      "digits": 0
+    }
+  ],
+  "outputs": [
+    {
+      "name": "Frame",
+      "desc": "不锈钢外框",
+      "type": "geometry"
+    },
+    {
+      "name": "Tray",
+      "desc": "不锈钢托盘",
+      "type": "geometry"
+    },
+    {
+      "name": "Plate",
+      "desc": "镀锌底板",
+      "type": "geometry"
+    },
+    {
+      "name": "Mesh",
+      "desc": "钢网",
+      "type": "geometry"
+    },
+    {
+      "name": "Mortar",
+      "desc": "砂浆",
+      "type": "geometry"
+    },
+    {
+      "name": "Paving",
+      "desc": "铺装",
+      "type": "geometry"
+    },
+    {
+      "name": "Ribs",
+      "desc": "加强肋",
+      "type": "geometry"
+    },
+    {
+      "name": "Pads",
+      "desc": "橡胶垫块",
+      "type": "geometry"
+    },
+    {
+      "name": "Holes",
+      "desc": "开启孔",
+      "type": "geometry"
+    },
+    {
+      "name": "Ring",
+      "desc": "混凝土井圈",
+      "type": "geometry"
+    }
+  ],
+  "script_body_file": "manhole_body.cs"
+}
