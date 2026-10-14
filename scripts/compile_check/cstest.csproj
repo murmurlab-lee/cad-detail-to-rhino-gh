@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- 关键: Rhino 7 的 GH C# 编译器只支持老语法, 按 C# 5 严格校验 -->
+    <LangVersion>5</LangVersion>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+</Project>

@@ -1,2 +1,32 @@
 # cad-detail-to-rhino-gh
-建筑节点详图 → Rhino 模型 (.3dm) + Grasshopper 参数化 (.ghx) 的 Agent Skill：PDF 读图、参数体系、双版本建模、五重校验、自动入库 Detail Atlas 构造库
+
+把建筑节点详图 / 大样图（PDF/DWG 导出）+ 现场参考照片，转化为：
+
+- **Rhino 3D 模型**（.3dm，Rhino 7 / 8 双版本）
+- **Grasshopper 参数化文件**（.ghx，滑块驱动 C# 脚本生成几何）
+
+构件级精度（主要构件尺寸准确，用于方案表达），适用于井盖、排水沟、栏杆、幕墙节点、五金预制件等盒体组合类构造节点。
+
+## 工作流（8 阶段）
+
+1. **读图解析** — `pdf_to_png.py` 栅格化后视觉读图，抄录全部尺寸标注与构造注记
+2. **疑问清单** — 关键尺寸缺失/矛盾一次问清，确认前不建模
+3. **参数体系** — 8-15 个滑块，Python 与 C# 推导公式严格一致
+4. **Python 建模** — `rhino3dm_helpers.py` 盒体组合，z=0 取完成面
+5. **校验 + 预览** — `check_intersections.py` 白名单相交检查 + 轴测预览
+6. **生成 .ghx** — `ghx_gen.py`（纯方法体 ScriptSource，C# 5，输入钳制）
+7. **验证** — `validate_ghx.py` 五重校验 + `compile_check/wrap_build.py` 模拟 GH 编译
+8. **交付** — Rhino 7 .3dm + .ghx + 轴测预览 png 三件，并自动入库 Detail Atlas 构造库（OSS 托管）
+
+## 目录
+
+| 路径 | 说明 |
+|---|---|
+| `SKILL.md` | Skill 主文件（触发条件、流程、质量门） |
+| `references/` | 工作流细节、.ghx 序列化规格、井盖完整案例 |
+| `scripts/` | 建模 / 校验 / ghx 生成与编译验证 / 构造库入库 |
+| `assets/` | spec 与脚本体样例、构造库页面模板 |
+
+## 交付物示例
+
+默认参数生成的竖杆栏杆节点（003）：50×10 扁钢扶手、φ6 竖杆均分、50×10 立放底梁、5 厚支座板 @1000 与预埋槽钢焊接——12 个滑块全部可调。
