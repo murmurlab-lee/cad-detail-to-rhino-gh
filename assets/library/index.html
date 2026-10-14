@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>构造库</title>
+<style>
+:root{
+  --bg:#ffffff; --side:#f7f7f5; --text:#37352f; --text2:#787774; --text3:#a3a09b;
+  --border:#e9e9e7; --hover:#f1f1ef; --accent:#c05f4a; --accent-soft:#f6ebe8;
+  --radius:10px; --shadow:0 4px 24px rgba(0,0,0,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+img{display:block}
+
+/* ---------- 密码门 ---------- */
+#gate{
+  position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#fafaf9,#f1f1ef);
+}
+#gate .card{
+  width:340px;background:#fff;border:1px solid var(--border);border-radius:14px;
+  padding:44px 36px 36px;text-align:center;box-shadow:var(--shadow);
+}
+#gate .mark{
+  width:46px;height:46px;margin:0 auto 18px;border-radius:10px;background:var(--accent);
+  color:#fff;font-size:24px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+#gate h1{font-size:20px;font-weight:700;letter-spacing:.02em}
+#gate .sub{font-size:12px;color:var(--text3);margin:6px 0 26px;letter-spacing:.08em}
+#gate input{
+  width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--border);border-radius:8px;
+  outline:none;text-align:center;letter-spacing:.1em;background:#fbfbfa;
+}
+#gate input:focus{border-color:var(--accent);background:#fff}
+#gate button{
+  width:100%;margin-top:12px;padding:10px;font-size:14px;font-weight:600;color:#fff;
+  background:var(--accent);border:none;border-radius:8px;
+}
+#gate button:hover{background:#a95140}
+#gate .err{font-size:12px;color:#c0392b;margin-top:12px;min-height:16px}
+#gate.shake .card{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+
+/* ---------- 布局 ---------- */
+#app{display:none;height:100vh}
+#app.on{display:flex}
+.sidebar{
+  width:250px;flex:none;background:var(--side);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;height:100%;
+}
+.brand{padding:22px 20px 14px}
+.brand h1{font-size:17px;font-weight:700;letter-spacing:.02em}
+.brand .sub{font-size:10.5px;color:var(--text3);letter-spacing:.14em;margin-top:3px;text-transform:uppercase}
+.search{padding:6px 14px 12px}
+.search input{
+  width:100%;padding:7px 12px;font-size:13px;border:1px solid var(--border);border-radius:7px;
+  background:#fff;outline:none;color:var(--text);
+}
+.search input:focus{border-color:#c9c9c7}
+.nav{flex:1;overflow-y:auto;padding:2px 8px 12px}
+.nav .lbl{font-size:11px;color:var(--text3);padding:10px 12px 5px;letter-spacing:.06em}
+.nav .item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 12px;font-size:13.5px;border-radius:6px;cursor:pointer;color:var(--text2);
+  border:1px solid transparent;margin-bottom:1px;
+}
+.nav .item:hover{background:var(--hover)}
+.nav .item.on{background:#fff;border-color:var(--border);color:var(--text);font-weight:600}
+.nav .cnt{font-size:11.5px;color:var(--text3)}
+.side-foot{padding:14px 20px;border-top:1px solid var(--border);font-size:11.5px;color:var(--text3)}
+
+.main{flex:1;overflow-y:auto}
+.main-head{padding:34px 40px 8px}
+.main-head h2{font-size:28px;font-weight:700}
+.main-head .meta{font-size:13px;color:var(--text2);margin-top:6px}
+.grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+  gap:20px;padding:22px 40px 60px;
+}
+.node-card{
+  border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;
+  cursor:pointer;transition:box-shadow .15s,transform .15s;
+}
+.node-card:hover{box-shadow:var(--shadow);transform:translateY(-2px)}
+.node-card .thumb{
+  aspect-ratio:16/10;background:#faf9f8;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;padding:14px;
+}
+.node-card .thumb img{max-width:100%;max-height:100%;object-fit:contain}
+.node-card .body{padding:13px 16px 15px}
+.node-card .name{font-size:14.5px;font-weight:600}
+.node-card .meta{font-size:12px;color:var(--text2);margin-top:5px}
+.tags{margin-top:9px;display:flex;flex-wrap:wrap;gap:5px}
+.tag{
+  font-size:11px;color:var(--text2);background:var(--side);border:1px solid var(--border);
+  border-radius:5px;padding:2px 7px;
+}
+.empty{padding:80px 40px;text-align:center;color:var(--text3);font-size:14px;grid-column:1/-1}
+
+/* ---------- 详情面板 ---------- */
+#backdrop{
+  position:fixed;inset:0;background:rgba(20,20,19,.35);opacity:0;pointer-events:none;
+  transition:opacity .18s;z-index:40;
+}
+#backdrop.on{opacity:1;pointer-events:auto}
+#panel{
+  position:fixed;top:0;right:0;height:100vh;width:580px;max-width:94vw;background:#fff;z-index:50;
+  box-shadow:-6px 0 32px rgba(0,0,0,.12);transform:translateX(102%);transition:transform .22s ease;
+  overflow-y:auto;
+}
+#panel.on{transform:none}
+.p-close{
+  position:sticky;top:14px;margin:14px 0 0 18px;width:30px;height:30px;border:none;border-radius:6px;
+  background:rgba(255,255,255,.9);font-size:15px;color:var(--text2);z-index:2;
+}
+.p-close:hover{background:var(--hover);color:var(--text)}
+.p-body{padding:0 40px 56px;margin-top:-16px}
+.p-preview{
+  border:1px solid var(--border);border-radius:var(--radius);background:#faf9f8;
+  display:flex;align-items:center;justify-content:center;padding:18px;margin-bottom:22px;
+}
+.p-preview img{max-width:100%;max-height:340px;object-fit:contain;border-radius:6px}
+.p-title{font-size:23px;font-weight:700}
+.p-meta{font-size:13px;color:var(--text2);margin-top:8px}
+.p-sec{margin-top:28px}
+.p-sec h3{
+  font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.08em;margin-bottom:10px;
+  padding-bottom:7px;border-bottom:1px solid var(--border);
+}
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable th{
+  text-align:left;font-weight:500;color:var(--text3);font-size:12px;padding:5px 8px;
+  border-bottom:1px solid var(--border);
+}
+.ptable td{padding:6px 8px;border-bottom:1px solid #f1f1ef;color:var(--text)}
+.ptable td.num{color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.frow{
+  display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);
+  border-radius:8px;margin-bottom:8px;transition:background .12s;
+}
+.frow:hover{background:var(--hover)}
+.frow .ico{
+  width:32px;height:32px;flex:none;border-radius:6px;background:var(--accent-soft);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+}
+.frow .nm{flex:1;font-size:13.5px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frow .sz{font-size:11.5px;color:var(--text3);flex:none}
+.frow .go{font-size:12px;color:var(--accent);font-weight:600;flex:none}
+.refs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.refs a{
+  aspect-ratio:1;border:1px solid var(--border);border-radius:7px;overflow:hidden;background:#faf9f8;
+  display:flex;align-items:center;justify-content:center;
+}
+.refs img{width:100%;height:100%;object-fit:cover}
+.desc{font-size:13.5px;line-height:1.85;color:var(--text2)}
+
+@media (max-width:820px){
+  #app.on{flex-direction:column}
+  .sidebar{width:100%;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+  .nav{display:flex;overflow-x:auto;padding:4px 10px}
+  .nav .lbl{display:none}
+  .nav .item{flex:none}
+  .side-foot{display:none}
+  .main-head{padding:22px 20px 4px}
+  .grid{padding:16px 20px 40px}
+}
+</style>
+</head>
+<body>
+
+<!-- 密码门 -->
+<div id="gate">
+  <div class="card">
+    <div class="mark">构</div>
+    <h1>构造库</h1>
+    <div class="sub">DETAIL ATLAS</div>
+    <input id="pwd" type="password" placeholder="请输入密码" autocomplete="off">
+    <button id="enter">进 入</button>
+    <div class="err" id="gerr"></div>
+  </div>
+</div>
+
+<!-- 主体 -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <h1>构造库</h1>
+      <div class="sub">Detail Atlas</div>
+    </div>
+    <div class="search"><input id="q" type="text" placeholder="搜索节点 / 标签…"></div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-foot" id="foot"></div>
+  </aside>
+  <main class="main">
+    <div class="main-head">
+      <h2 id="catTitle">全部节点</h2>
+      <div class="meta" id="catMeta"></div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<!-- 详情 -->
+<div id="backdrop"></div>
+<div id="panel"></div>
+
+<script src="__LIB_BASE__/library.js"></script>
+<script>
+/* ---------- 密码门 (cyrb53 哈希, 页面无明文) ---------- */
+const cyrb53 = (str, seed = 0) => {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0, ch; i < str.length; i++) {
+    ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507);
+  h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507);
+  h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+};
+
+const gate = document.getElementById('gate');
+function tryEnter(){
+  const v = document.getElementById('pwd').value;
+  if(cyrb53(v) === LIB_CONFIG.passwordHash){
+    gate.style.display='none';
+    document.getElementById('app').classList.add('on');
+  }else{
+    document.getElementById('gerr').textContent = '密码不正确';
+    gate.classList.remove('shake'); void gate.offsetWidth; gate.classList.add('shake');
+  }
+}
+document.getElementById('enter').onclick = tryEnter;
+document.getElementById('pwd').addEventListener('keydown', e=>{ if(e.key==='Enter') tryEnter(); });
+
+/* ---------- 状态 ---------- */
+let curCat = '全部';
+let kw = '';
+
+/* ---------- 侧栏 ---------- */
+function renderNav(){
+  const nav = document.getElementById('nav');
+  const counts = {};
+  NODES.forEach(n=>{ counts[n.category]=(counts[n.category]||0)+1; });
+  let h = '<div class="lbl">分类</div>';
+  h += navItem('全部', NODES.length);
+  CATEGORIES.forEach(c=>{ h += navItem(c, counts[c]||0); });
+  nav.innerHTML = h;
+  nav.querySelectorAll('.item').forEach(el=>{
+    el.onclick = ()=>{ curCat = el.dataset.cat; renderNav(); renderGrid(); };
+  });
+}
+function navItem(cat, cnt){
+  const on = cat===curCat ? ' on' : '';
+  return `<div class="item${on}" data-cat="${cat}"><span>${cat==='全部'?'全部节点':cat}</span><span class="cnt">${cnt}</span></div>`;
+}
+
+/* ---------- 卡片网格 ---------- */
+function filtered(){
+  return NODES.filter(n=>{
+    if(curCat!=='全部' && n.category!==curCat) return false;
+    if(kw){
+      const s = (n.name+n.id+n.category+n.tags.join('')).toLowerCase();
+      if(!s.includes(kw.toLowerCase())) return false;
+    }
+    return true;
+  });
+}
+function renderGrid(){
+  const list = filtered();
+  document.getElementById('catTitle').textContent = curCat==='全部'?'全部节点':curCat;
+  document.getElementById('catMeta').textContent = `${list.length} 个节点`;
+  document.getElementById('foot').textContent = `共 ${NODES.length} 个节点`;
+  const grid = document.getElementById('grid');
+  if(!list.length){ grid.innerHTML = '<div class="empty">没有匹配的节点</div>'; return; }
+  grid.innerHTML = list.map(n=>`
+    <div class="node-card" data-id="${n.id}">
+      <div class="thumb"><img src="${encodeURI(n.preview)}" alt="${n.name}" loading="lazy"></div>
+      <div class="body">
+        <div class="name">${n.name}</div>
+        <div class="meta">#${n.id} · ${n.category} · ${n.date}</div>
+        <div class="tags">${n.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.node-card').forEach(el=>{
+    el.onclick = ()=>openPanel(el.dataset.id);
+  });
+}
+document.getElementById('q').addEventListener('input', e=>{ kw=e.target.value.trim(); renderGrid(); });
+
+/* ---------- 详情面板 ---------- */
+const panel = document.getElementById('panel');
+const backdrop = document.getElementById('backdrop');
+function fmtKb(kb){ return kb>1024 ? (kb/1024).toFixed(1)+' MB' : kb+' KB'; }
+function frow(f, ico, go){
+  return `<a class="frow" href="${encodeURI(f.path)}" ${go==='view'?'target="_blank"':'download'}>
+    <div class="ico">${ico}</div>
+    <div class="nm">${f.label||f.path.split('/').pop()}</div>
+    <div class="sz">${fmtKb(f.kb)}</div>
+    <div class="go">${go==='view'?'查看 ↗':'下载 ↓'}</div>
+  </a>`;
+}
+function openPanel(id){
+  const n = NODES.find(x=>x.id===id);
+  if(!n) return;
+  let files = frow(n.files.model,'3DM') + frow(n.files.ghx,'GH');
+  if(n.files.pdf) files += frow(n.files.pdf,'PDF');
+  const refs = (n.files.refs||[]).map(r=>
+    `<a href="${encodeURI(r.path)}" target="_blank"><img src="${encodeURI(r.path)}" loading="lazy"></a>`).join('');
+  panel.innerHTML = `
+    <button class="p-close" onclick="closePanel()">✕</button>
+    <div class="p-body">
+      <div class="p-preview"><img src="${encodeURI(n.preview)}" alt="${n.name}"></div>
+      <div class="p-title">${n.name}</div>
+      <div class="p-meta">#${n.id} · ${n.category} · ${n.date}</div>
+      <div class="tags" style="margin-top:12px">${n.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      <div class="p-sec">
+        <h3>可调参数（Grasshopper 滑块）</h3>
+        <table class="ptable">
+          <tr><th>参数</th><th>范围</th><th>默认</th></tr>
+          ${n.params.map(p=>`<tr><td>${p.nick}</td><td class="num">${p.min} – ${p.max}</td><td class="num">${p.def}</td></tr>`).join('')}
+        </table>
+      </div>
+      <div class="p-sec"><h3>文件</h3>${files}</div>
+      ${refs?`<div class="p-sec"><h3>参考照片（原始资料）</h3><div class="refs">${refs}</div></div>`:''}
+      <div class="p-sec"><h3>说明与假设</h3><div class="desc">${n.description}</div></div>
+    </div>`;
+  panel.classList.add('on'); backdrop.classList.add('on');
+}
+function closePanel(){ panel.classList.remove('on'); backdrop.classList.remove('on'); }
+backdrop.onclick = closePanel;
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closePanel(); });
+
+/* ---------- 启动 ---------- */
+renderNav(); renderGrid();
+</script>
+</body>
+</html>
