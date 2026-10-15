@@ -54,8 +54,11 @@ attachment，无法直接托管 HTML 页面**。因此页面 = 用户本地的�
 **首次使用（建库，一次性）**：配置 `/mnt/agents/output/构造库/library_oss.json` 不存在
 → 引导用户：① 控制台建 OSS 桶（建议就近地域）；② 建专用 AccessKey（权限仅限此桶）。
 只需这两样——公共访问封锁关闭/公共读/静态托管全由脚本 API 完成。然后：
-`python3 scripts/library_add.py --init --bucket X --region oss-cn-xxx --ak X --sk X
---password 页面密码`，产出入口 html 交付用户下载。配置同时写入长期记忆。
+`export OSS_ACCESS_KEY_ID=xxx && export OSS_ACCESS_KEY_SECRET=xxx`（密钥走环境变量，
+不写源代码、不落盘），再 `python3 scripts/library_add.py --init --bucket X
+--region oss-cn-xxx --password 页面密码`，产出入口 html 交付用户下载。
+配置同时写入长期记忆。**凭证安全铁律：AccessKey 绝不出现在 skill 源码 / 网页 /
+任何上传 git 的文件中**（skill 内置 .gitignore 排除构造库配置）。
 
 **日常入库**：交付三件后自动 `--add`（编号 NNN_名称按时间顺序、同名加 _01；分类限
 11 部位：基础/结构/屋顶/楼地面/墙面/幕墙/楼梯/景观/照明/机电/室内；参数表从
@@ -99,6 +102,10 @@ Description）；**输入/输出命名避开 C# 关键字**（仅大小写不同
 
 ## 版本记录
 
+- v1.3 (2026-10)：凭证安全改造 —— OSS AccessKey 改走环境变量
+  （OSS_ACCESS_KEY_ID/SECRET 优先，不落盘），library_add.py 加载顺序
+  环境变量>本地配置；新增 .gitignore 排除构造库配置；compile_check 桩补
+  Circle/Cylinder/Plane/Vector3d（支持圆柱脚本体验证）。
 - v1.1 (2026-10)：①修复 GH 签名按输入 NickName 生成的问题（NickName 固定=英文 var）；
   新增命名/特殊符号强制检查（ghx_gen 拒生成 + validate_ghx 第五重校验），目标 ghx
   一次成功。②交付物精简为恰好三件：Rhino7 .3dm + .ghx + 轴测 .png；假设清单与注记

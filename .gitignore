@@ -1,0 +1,9 @@
+# 凭证与本地库数据 — 绝不上传
+构造库/
+library_oss.json
+library_db.json
+构造库_V1预览.zip
+
+# Python
+__pycache__/
+*.pyc

@@ -7,14 +7,20 @@
 index.html 通过绝对 URL 引用 library.js。入库 = 上传节点文件 + 重建上传 library.js。
 
 配置与数据 (跨会话持久, 不随 skill 安装目录):
-  /mnt/agents/output/构造库/library_oss.json   OSS 连接配置 (含 AccessKey, 不上传)
+  /mnt/agents/output/构造库/library_oss.json   OSS 连接配置 (可不含 AccessKey, 不上传)
   /mnt/agents/output/构造库/library_db.json    全部节点元数据 (重建索引的源)
 
+凭证安全铁律: AccessKey 绝不写进 skill 源代码 / 网页 / 任何会上传的文件。
+凭证来源优先级: ① 环境变量 OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET (推荐)
+              ② --init 时 --ak/--sk 传入 (会写入本地 library_oss.json, 仅本机持有)
+
 用法:
-  # 首次建库 (用户已建好空桶 + 专用 AccessKey 后):
+  # 首次建库 (推荐: 密钥走环境变量, 不落盘):
+  export OSS_ACCESS_KEY_ID=LTAIxxx
+  export OSS_ACCESS_KEY_SECRET=xxx
   python3 library_add.py --init --bucket detail-atlas-data --region oss-cn-shanghai \
-      --ak LTAIxxx --sk xxx --password 页面密码
-  # 日常入库 (skill 第 9 阶段自动执行):
+      --password 页面密码
+  # 日常入库 (skill 第 9 阶段自动执行, 密钥自动从环境变量/本地配置读取):
   python3 library_add.py --add --name 栏杆标准段 --category 楼梯 \
       --tags 金属栏杆,标准段 --spec spec.json --description "假设清单..." \
       --model xxx_Rhino7.3dm --ghx xxx_参数化.ghx --preview xxx_轴测.png \
@@ -111,7 +117,15 @@ class OSS:
 def load_cfg():
     if not os.path.exists(CFG_PATH):
         sys.exit("❌ 未找到 OSS 配置, 请先运行 --init 建库")
-    return json.load(open(CFG_PATH, encoding="utf-8"))
+    cfg = json.load(open(CFG_PATH, encoding="utf-8"))
+    # 环境变量优先于配置文件 (凭证可不落盘)
+    if os.environ.get("OSS_ACCESS_KEY_ID"):
+        cfg["ak"] = os.environ["OSS_ACCESS_KEY_ID"]
+    if os.environ.get("OSS_ACCESS_KEY_SECRET"):
+        cfg["sk"] = os.environ["OSS_ACCESS_KEY_SECRET"]
+    if not cfg.get("ak") or not cfg.get("sk"):
+        sys.exit("❌ 缺少 OSS 凭证: 请设置环境变量 OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET")
+    return cfg
 
 
 def load_db():
@@ -152,12 +166,20 @@ def rebuild_library_js(cfg, db):
 
 
 def do_init(args):
-    cfg = {"bucket": args.bucket, "region": args.region, "ak": args.ak, "sk": args.sk,
+    # 凭证: 环境变量优先 (不落盘); CLI 参数兜底 (写入本地配置, 仅本机持有)
+    ak = os.environ.get("OSS_ACCESS_KEY_ID") or args.ak
+    sk = os.environ.get("OSS_ACCESS_KEY_SECRET") or args.sk
+    if not ak or not sk:
+        sys.exit("❌ 缺少凭证: 请 export OSS_ACCESS_KEY_ID / OSS_ACCESS_KEY_SECRET (推荐), "
+                 "或用 --ak/--sk 传入")
+    from_env = bool(os.environ.get("OSS_ACCESS_KEY_ID"))
+    cfg = {"bucket": args.bucket, "region": args.region, "ak": ak, "sk": sk,
            "passwordHash": cyrb53(args.password)}
     oss = OSS(cfg)
     # 1) 验证凭据
     oss.check()
-    print(f"✅ 凭据有效, 桶 {args.bucket} ({args.region}) 可达")
+    print(f"✅ 凭据有效 ({'环境变量' if from_env else '命令行参数'}), "
+          f"桶 {args.bucket} ({args.region}) 可达")
     # 2) 关公共访问封锁 + 公共读 + 静态托管
     body = (b'<?xml version="1.0" encoding="UTF-8"?>'
             b'<PublicAccessBlockConfiguration><BlockPublicAccess>false</BlockPublicAccess>'
@@ -171,7 +193,13 @@ def do_init(args):
     print("✅ 已配置: 关闭公共访问封锁 / 公共读 / 静态网站托管")
     # 3) 初始 library.js + 入口 index.html
     os.makedirs(STORE_DIR, exist_ok=True)
-    json.dump(cfg, open(CFG_PATH, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    cfg_saved = dict(cfg)
+    if from_env:
+        del cfg_saved["ak"], cfg_saved["sk"]  # 密钥不落盘
+    else:
+        print("⚠️ 凭证来自命令行, 已写入本地 library_oss.json (仅本机持有, 勿上传 git); "
+              "建议下次改用环境变量")
+    json.dump(cfg_saved, open(CFG_PATH, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
     db = load_db()
     save_db(db)
     oss.put("library.js", rebuild_library_js(cfg, db).encode("utf-8"),
@@ -264,7 +292,8 @@ def main():
     ap.add_argument("--add", action="store_true", help="节点入库")
     # init 参数
     ap.add_argument("--bucket"); ap.add_argument("--region")
-    ap.add_argument("--ak"); ap.add_argument("--sk")
+    ap.add_argument("--ak", help="AccessKey ID (推荐改用环境变量 OSS_ACCESS_KEY_ID)")
+    ap.add_argument("--sk", help="AccessKey Secret (推荐改用环境变量 OSS_ACCESS_KEY_SECRET)")
     ap.add_argument("--password", default="1234", help="页面密码 (默认 1234, 只存哈希)")
     # add 参数
     ap.add_argument("--name"); ap.add_argument("--category"); ap.add_argument("--tags", default="")
@@ -274,7 +303,7 @@ def main():
     args = ap.parse_args()
 
     if args.init:
-        for f in ("bucket", "region", "ak", "sk"):
+        for f in ("bucket", "region"):
             if not getattr(args, f):
                 sys.exit(f"❌ --init 需要 --{f}")
         do_init(args)

@@ -101,11 +101,16 @@ python3 scripts/library_add.py --add --name 节点名 --category 部位     --ta
   跨会话持久，勿删）。
 
 **首次使用必须先建库**：library_oss.json 不存在 → 引导用户在阿里云控制台做两件事
-（①建 OSS 桶；②建仅限此桶的专用 AccessKey），其余配置脚本自动完成：
+（①建 OSS 桶；②建仅限此桶的专用 AccessKey），其余配置脚本自动完成。
+凭证走环境变量（不写源代码、不落盘）：
 
 ```
-python3 scripts/library_add.py --init --bucket 桶名 --region oss-cn-xxx     --ak ID --sk SECRET --password 页面密码
+export OSS_ACCESS_KEY_ID=xxx
+export OSS_ACCESS_KEY_SECRET=xxx
+python3 scripts/library_add.py --init --bucket 桶名 --region oss-cn-xxx --password 页面密码
 ```
+
+（兼容：`--ak/--sk` 传参仍可用，但会写入本机 library_oss.json，且绝不入 git。）
 
 产出入口文件 `DetailAtlas_构造库_入口.html` 交付用户（下载一次，永久使用）。
 
